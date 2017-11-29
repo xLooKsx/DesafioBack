@@ -22,38 +22,38 @@ public class Main {
 
 	public static void main(String[] args) {
 
-		Scanner entrada = new Scanner(System.in);		
+		Scanner entrada = new Scanner(System.in);
 		BigDecimal vlrTotal = new BigDecimal(0.0);
-		
+
 		StringBuilder clientes = new StringBuilder();
-		
-		List<CustomerTO>customers = new ArrayList<>();
-//		List<CustomerTO>customersEscolhidos = new ArrayList<>();
-		
+
+		List<CustomerTO> customers = new ArrayList<>();		 
+
 		String tipoDocumento;
 		String idTemp;
 		String mensagemErro = "Insira o saldo do cliente";
-		
-		boolean docValido = false;		
+
+		boolean docValido = false;
 		boolean valorValido = true;
-		
-		int qtdCustomersEscolhidos = 0;
-		
-		Logger logger = Logger.getLogger(Main.class.getName());
-		
+
+		int qtdCustomersEscolhidos = 0;		
+
 		System.out.println("Bem vindo, insira os valores ou pressione enter para sair");
 		do {
 			customerTO = new CustomerTO();
-			
+
 			/*
 			 * Inserção do nome
 			 */
 			System.out.println("nome: ");
 			customerTO.setNome(entrada.nextLine());
-			if (customerTO.getNome().trim().length() == 0) {				
+			if (customerTO.getNome().trim().length() == 0) {
+				if (!customers.isEmpty()) {
+					new CustomerDAO().inserirCustomer(customers);
+				}
 				break;
 			}
-			
+
 			/*
 			 * Inserção do Id
 			 */
@@ -64,7 +64,7 @@ public class Main {
 				idTemp = entrada.nextLine();
 			}
 			customerTO.setId(Integer.parseInt(idTemp));
-			
+
 			/*
 			 * Inserção do CPF/CNPJ
 			 */
@@ -72,75 +72,70 @@ public class Main {
 			tipoDocumento = entrada.nextLine();
 			while (!tipoDocumento.matches("[1-2]")) {
 				System.out.println("Opção invalida, porfavor escolha 1-CPF\n2-CNPJ: ");
-				tipoDocumento = entrada.nextLine();				
+				tipoDocumento = entrada.nextLine();
 			}
 			System.out.println("Insira o seu documento(Sem traços ou pontos): ");
-			customerTO.setDocumento(entrada.nextLine());			
+			customerTO.setDocumento(entrada.nextLine());
 			docValido = DesafioBackUtils.escolherTipoValidacao(tipoDocumento, customerTO.getDocumento());
 			while (!docValido) {
 				System.out.println("Insira o documento corretamento(Sem traços ou pontos): ");
 				customerTO.setDocumento(entrada.nextLine());
 				docValido = DesafioBackUtils.escolherTipoValidacao(tipoDocumento, customerTO.getDocumento());
 			}
-			
+
 			/*
 			 * Inserção do status do cliente
 			 */
-			System.out.println("Insira o status do cliente 1-Ativo ou 2-Inativo ");
+			System.out.println("Insira o status do cliente 1-Ativo ou 0-Inativo ");
 			customerTO.setActive(entrada.nextLine());
-			while (!customerTO.getActive().trim().matches("[1-2]")) {
-				System.out.println("Opção invalida, porfavor escolha 1-Ativo\\n2-Inativo ");
-				tipoDocumento = entrada.nextLine();
+			while (!customerTO.getActive().trim().matches("[0-1]")) {
+				System.out.println("Opção invalida, porfavor escolha 1-Ativo ou 0-Inativo ");
+				customerTO.setActive(entrada.nextLine());
 			}
-			
+
 			/*
 			 * Inserido o saldo do cliente
-			 */						
+			 */
 			do {
 				try {
 					System.out.println(mensagemErro);
-					customerTO.setVlrTotal(new BigDecimal(entrada.nextLine()));	
+					customerTO.setVlrTotal(new BigDecimal(entrada.nextLine()));
 					valorValido = false;
-				} catch (NumberFormatException e) {					
+				} catch (NumberFormatException e) {
 					mensagemErro = "Saldo invalido, insira novamente:";
 				}
 			} while (valorValido);
-			
+
 			customers.add(customerTO);
-			System.out.println(customerTO.toString());			
-		} while (true);	
+		} while (true);
 		
+		entrada.close();
 		/*
-		 * Ordenando a lista de forma decrescente usando o valor total como criterio			
+		 * Ordenando a lista de forma decrescente usando o valor total como
+		 * criterio
 		 */
-		Collections.sort(customers, 
-			    Comparator.comparing(CustomerTO::getVlrTotal).reversed());
-		
+		Collections.sort(customers, Comparator.comparing(CustomerTO::getVlrTotal).reversed());
+
 		/*
 		 * Escolhendo os clientes que se encaixam nos requerimentos
 		 */
 		for (CustomerTO customerDaVez : customers) {
-			if ((customerDaVez.getVlrTotal().compareTo(new BigDecimal(560)) == 1) 
-											&& customerDaVez.getId() >= 1500 
-											&& customerDaVez.getId() <= 2700
-											&& customerDaVez.getActive().contains("1")) {					
+			if ((customerDaVez.getVlrTotal().compareTo(new BigDecimal(560)) == 1) && customerDaVez.getId() >= 1500
+					&& customerDaVez.getId() <= 2700 && customerDaVez.getActive().contains("1")) {
 				vlrTotal = vlrTotal.add(customerDaVez.getVlrTotal());
-				
+
 				clientes.append("Id: " + customerDaVez.getId())
-						.append("\nDocumento: "+ customerDaVez.getDocumento())
-						.append("\nNome: "+ customerDaVez.getNome())
-						.append("\nEsta Ativo: "+ (customerDaVez.getActive().trim().contains("1")?"Sim":"Não"))
-						.append("\nValor total: " + customerDaVez.getVlrTotal())
-						.append("\n");
+								.append("\nDocumento: " + customerDaVez.getDocumento())
+								.append("\nNome: " + customerDaVez.getNome())
+								.append("\nEsta Ativo: " + (customerDaVez.getActive().trim().contains("1") ? "Sim" : "Não"))
+								.append("\nValor total: " + customerDaVez.getVlrTotal()).append("\n");
 				qtdCustomersEscolhidos++;
-				
 			}
 		}
-		//Calculando a media
-//		vlrMedia = vlrMedia.divide(new BigDecimal(customersEscolhidos.size()), MathContext.DECIMAL128).setScale(2, RoundingMode.HALF_EVEN);
-		System.out.println("Valor da media: "+ DesafioBackUtils.cacularMedia(vlrTotal, qtdCustomersEscolhidos)+"\n");
-		System.out.println(clientes.toString().length()==0?"nenhum Cliente cadastrado":clientes.toString());
-				
+		 
+		System.out.println("Valor da media: " + DesafioBackUtils.cacularMedia(vlrTotal, qtdCustomersEscolhidos) + "\n");
+		System.out.println(clientes.toString().length() == 0 ? "nenhum Cliente cadastrado" : clientes.toString());
+
 		System.exit(0);
 	}
 }

@@ -2,48 +2,61 @@ package br.desafio.back.DAO;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class CustomerDAO {
-	
-	private Connection connection;
-	private PreparedStatement stm;
-	private ResultSet rs;
-	
-	Logger logger = Logger.getLogger(CustomerDAO.class.getName());
-	
-	public CustomerDAO() {		
-		this.connection = new ConnectionFactory().getConnection();
-	} 
+import br.desafio.back.TO.CustomerTO;
 
-	public boolean teste(){
-		
+public class CustomerDAO {
+
+	private Connection connection;
+	private PreparedStatement stm;	
+
+	Logger logger = Logger.getLogger(CustomerDAO.class.getName());
+
+	public CustomerDAO() {
+		this.connection = new ConnectionFactory().getConnection();
+	}
+
+	public void inserirCustomer(List<CustomerTO> Customers) {
+
 		StringBuilder sql = new StringBuilder();
-		
-		sql.append("SELECT * FROM tb_customer_account ");
-		
+		sql.append("INSERT INTO ")
+				.append("tb_customer_account ")
+				.append("( ")
+				.append("id_customer, ")
+				.append("cpf_cnpj, ")
+				.append("nm_cliente, ")
+				.append("is_active, ")
+				.append("vl_total ")
+				.append(") ")
+				.append("VALUES(?, ?, ?, ?, ?); ");
+
 		try {
-			this.stm = connection.prepareStatement(sql.toString());
-			this.stm.execute();
-			this.rs = stm.executeQuery();
-			logger.log(Level.INFO, this.stm.toString());
-			if (rs.next()) {
-				return true;
-			}			
-		} catch (Exception e) {
-			logger.log(Level.SEVERE, "Erro ao fazer busca",e);
-		}finally {
+			this.stm = this.connection.prepareStatement(sql.toString());
+			for (CustomerTO customerTODaVez : Customers) {
+
+				this.stm.setInt(1, customerTODaVez.getId());
+				this.stm.setString(2, customerTODaVez.getDocumento());
+				this.stm.setString(3, customerTODaVez.getNome());
+				this.stm.setInt(4, Integer.parseInt(customerTODaVez.getActive()));
+				this.stm.setBigDecimal(5, customerTODaVez.getVlrTotal());
+				this.stm.addBatch();
+			}
+			stm.executeBatch();
+
+		} catch (SQLException e) {
+			logger.log(Level.SEVERE,
+					"Impossivel salvar os dados, porfavor verifique se tudo foi inserido corretamente ", e);
+		} finally {
 			try {
-				this.rs.close();
 				this.stm.close();
 				this.connection.close();
-			} catch (SQLException e) {				
+			} catch (SQLException e) {
 				e.printStackTrace();
 			}
+		}
 	}
-		return false;
-	}
-	}
+}

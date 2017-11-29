@@ -7,14 +7,14 @@ public class CustomerTO {
 	private int id;
 	private String documento;
 	private String nome;
-	private int active;
+	private String active;
 	private BigDecimal vlrTotal;
 	
 	public CustomerTO() {
-		this(0, "", "", 0, null);
+		this(0, "", "", "", null);
 	}
 
-	public CustomerTO(int id, String documento, String nome, int active, BigDecimal vlrTotal) {
+	public CustomerTO(int id, String documento, String nome, String active, BigDecimal vlrTotal) {
 		super();
 		this.id = id;
 		this.documento = documento;
@@ -29,14 +29,6 @@ public class CustomerTO {
 
 	public void setId(int id) {
 		this.id = id;
-	}
-
-	public int getActive() {
-		return active;
-	}
-
-	public void setActive(int active) {
-		this.active = active;
 	}
 
 	public BigDecimal getVlrTotal() {
@@ -63,12 +55,17 @@ public class CustomerTO {
 		this.documento = documento;
 	}
 
+	public String getActive() {
+		return active;
+	}
+
+	public void setActive(String active) {
+		this.active = active;
+	}
+
 	@Override
 	public String toString() {
 		return "CustomerTO [id=" + id + ", documento=" + documento + ", nome=" + nome + ", active=" + active
 				+ ", vlrTotal=" + vlrTotal + "]";
 	}
-	
-	
-	
 }
